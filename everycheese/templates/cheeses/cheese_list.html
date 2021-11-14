@@ -1,14 +1,21 @@
-{% extends "base.html" %}
-{% block title %}Cheese List{% endblock title %}
+{% extends "base.html" %} 
+{% block title %}Cheese List{% endblock title %} 
 {% block content %}
 
-    <h2>Cheese List</h2>
+<h2>Cheese List</h2>
 
 <ul>
-    
-    {% for cheese in cheese_list %}
-    <li><a href="{% url 'cheeses:detail' cheese.slug %}">{{ cheese.name }}</a></li>
-    {% endfor %}
-
+  {% for cheese in cheese_list %}
+  <li>
+    <a href="{% url 'cheeses:detail' cheese.slug %}">{{ cheese.name }}</a>
+  </li>
+  {% endfor %}
 </ul>
+<hr />
+<p>Don't see a cheese listed here?</p>
+<p>
+  <a class="btn btn-primary" href="{% url 'cheeses:add' %}" role="button">
+    Add Cheese
+  </a>
+</p>
 {% endblock content %}
