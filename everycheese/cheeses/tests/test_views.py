@@ -12,9 +12,10 @@ from ..models import Cheese
 from ..views import (
     CheeseCreateView,
     CheeseListView,
-    CheeseDetailView
+    CheeseDetailView,
+    CheeseUpdateView
 )
-from .factories import CheeseFactory
+from .factories import CheeseFactory, cheese
 
 pytestmark = pytest.mark.django_db
 
@@ -26,7 +27,7 @@ def test_good_cheese_list_view_expanded(rf):
     response = callable_obj(request)
     assertContains(response, 'Cheese List')
 
-def test_good_cheese_detail_view(rf):
+def test_good_cheese_detail_view(rf, cheese):
     cheese = CheeseFactory()
     url = reverse("cheeses:detail", kwargs={'slug':cheese.slug})
     request = rf.get(url)
@@ -77,3 +78,32 @@ def test_cheese_create_form_valid(rf, admin_user):
     assert cheese.description == "A salty hard cheese"
     assert cheese.firmness == Cheese.Firmness.HARD
     assert cheese.creator == admin_user
+
+def test_cheese_create_correct_title(rf, admin_user):
+    request = rf.get(reverse('cheeses:add'))
+    request.user = admin_user
+    response = CheeseCreateView.as_view()(request)
+    assertContains(response, 'Add Cheese')
+
+def test_good_cheese_update_view(rf, admin_user, cheese):
+    url = reverse("cheeses:update", kwargs={'slug': cheese.slug})
+    request = rf.get(url)
+    request.user = admin_user
+    callable_obj = CheeseUpdateView.as_view()
+    response = callable_obj(request, slug=cheese.slug)
+    assertContains(response, "Update Cheese")
+
+def test_cheese_update(rf, admin_user, cheese):
+    form_data = {
+        'name': cheese.name,
+        'description': 'Something new',
+        'firmness': cheese.firmness
+    }
+    url = reverse("cheeses:update", kwargs={'slug': cheese.slug})
+    request = rf.post(url, form_data)
+    request.user = admin_user
+    callable_obj = CheeseUpdateView.as_view()
+    response = callable_obj(request, slug = cheese.slug)
+    cheese.refresh_from_db()
+    assert cheese.description == 'Something new'
+    
